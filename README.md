@@ -1,0 +1,2 @@
+# sync_anims_on_network
+set_up_sample_sync_anims_on_network
