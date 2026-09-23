@@ -1,6 +1,5 @@
 using Animancer;
 using Fusion;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerGraphicController : NetworkBehaviour
@@ -14,6 +13,7 @@ public class PlayerGraphicController : NetworkBehaviour
 
     private AnimancerState idleState;
     private AnimancerState walkState;
+    private AnimancerState onAirState;
 
     public override void Spawned()
     {
@@ -28,11 +28,13 @@ public class PlayerGraphicController : NetworkBehaviour
 
         idleState = animancer.Layers[0].GetOrCreateState(_Idle);
         walkState = animancer.Layers[0].GetOrCreateState(_Walk);
+        onAirState = animancer.Layers[0].GetOrCreateState(_OnAir);
 
         idleState.SetWeight(0);
         walkState.SetWeight(0);
+        onAirState.SetWeight(0);
 
-        animancer.Layers[0].Weight = 1;
+        animancer.Layers[0].Weight = 0;
     }
 
 
@@ -43,44 +45,71 @@ public class PlayerGraphicController : NetworkBehaviour
 
         //if (controller == null) return;
 
-        if (controller.MoveDir.magnitude >=0.01f)
-        {
-            idleState.SetWeight(0);
-            walkState.SetWeight(1);
-        }
-        else
-        {
-            idleState.SetWeight(1);
-            walkState.SetWeight(0);
-        }
-
-        idleState.Time = Runner.SimulationTime;
-        walkState.Time = Runner.DeltaTime * Runner.Tick;
-        animancer.Evaluate();
-    }
-
-
-    public override void Render()
-    {
-        return;
-        if (controller == null) return;
-        if (animancer == null) return;
-
         if (!controller.OnGround)
         {
-            animancer.Play(_OnAir, 0.25f);
+            idleState.SetWeight(0);
+            walkState.SetWeight(0);
+            onAirState.SetWeight(1);
         }
         else
         {
             if (controller.MoveDir.magnitude >= 0.01f)
             {
-                animancer.Play(_Walk, 0.25f);
-                animancer.States.Current.Speed = controller.MoveDir.magnitude;
+                idleState.SetWeight(0);
+                walkState.SetWeight(1);
             }
             else
             {
-                animancer.Play(_Idle, 0.25f);
+                idleState.SetWeight(1);
+                walkState.SetWeight(0);
             }
+            onAirState.SetWeight(0);
         }
+
+        idleState.Time = Runner.SimulationTime;
+        walkState.Time = Runner.DeltaTime * Runner.Tick;
+        onAirState.Time = Runner.SimulationTime;
+
+        animancer.Evaluate();
+
+    }
+
+
+    public override void Render()
+    {
+        //return;
+        if (HasStateAuthority) return;
+        if (controller == null) return;
+        if (animancer == null) return;
+
+        float time = IsProxy ? Runner.RemoteRenderTime : Runner.LocalRenderTime;
+
+        if (!controller.OnGround)
+        {
+            walkState.Weight = 0;
+            idleState.Weight = 0;
+            onAirState.Weight = 1;
+        }
+        else
+        {
+
+            if (controller.MoveDir.magnitude >= 0.01f)
+            {
+                walkState.Weight = 1;
+                idleState.Weight = 0;
+            }
+            else
+            {
+                walkState.Weight = 0;
+                idleState.Weight = 1;
+            }
+            onAirState.Weight = 0;
+        }
+
+        walkState.Time = time;
+        idleState.Time = time;
+        onAirState.Time = time;
+
+        animancer.Evaluate();
     }
 }

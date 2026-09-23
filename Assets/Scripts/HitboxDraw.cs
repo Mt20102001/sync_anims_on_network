@@ -1,99 +1,108 @@
-﻿using UnityEngine;
-using Fusion;
-
-namespace Animations
+﻿namespace Animations
 {
-	using System.Collections.Generic;
-	using Fusion.Plugin;
+    using UnityEngine;
+    using Fusion.Plugin;
+    using Fusion;
 
-	public class HitboxDraw : NetworkBehaviour
-	{
-		// PRIVATE MEMBERS
+    public class HitboxDraw : NetworkBehaviour
+    {
+        // PRIVATE MEMBERS
 
-		[SerializeField]
-		private bool _drawHitbox = true;
-		[SerializeField]
-		private Hitbox _hitbox;
-		[SerializeField]
-		private int _hitboxDrawIntervalTicks = 50;
-		[SerializeField]
-		private bool _subtickAccuracy;
+        [SerializeField]
+        private bool _drawHitbox = true;
+        [SerializeField]
+        private Hitbox _hitbox;
+        [SerializeField]
+        private int _hitboxDrawIntervalTicks = 50;
 
-		[Header("Colors")]
-		[SerializeField]
-		private Color _inputAuthorityColor = Color.white;
-		[SerializeField]
-		private Color _proxyColor = Color.gray;
-		[SerializeField]
-		private Color _stateAuthorityColor = Color.blue;
+        [Header("Colors")]
+        [SerializeField]
+        private Color _inputAuthorityColor = Color.white;
+        [SerializeField]
+        private Color _proxyColor = Color.gray;
+        [SerializeField]
+        private Color _stateAuthorityColor = Color.blue;
 
-		// SimulationBehaviour INTERFACE
+        // Tick vừa được vẽ ở phía authoritative, đang chờ visual "bắt kịp"
+        private int _pendingTick = -1;
+        // Tick cuối cùng đã vẽ visual, để không vẽ lặp lại nhiều lần/frame
+        private int _lastVisualDrawnTick = -1;
 
-		public override void Spawned()
-		{
-			Runner.SetIsSimulated(Object, true);
-		}
+        // SimulationBehaviour INTERFACE
 
-		public override void FixedUpdateNetwork()
-		{
-			DrawHitbox();
-		}
+        public override void Spawned()
+        {
+            Runner.SetIsSimulated(Object, true);
+        }
 
-		// PRIVATE METHODS
+        public override void FixedUpdateNetwork()
+        {
+            DrawAuthoritativeHitbox();
+        }
 
-		private void DrawHitbox()
-		{
-            Debug.Log("Step 1");
-            if (_drawHitbox == false)
-				return;
+        public override void Render()
+        {
+            DrawVisualHitbox();
+        }
 
-            Debug.Log("Step 2");
-            if (_hitbox == null)
-				return;
+        //private void LateUpdate()
+        //{
+        //    DrawVisualHitbox();
+        //}
 
-            Debug.Log("Step 3");
-            if (HasInputAuthority == true && HasStateAuthority == false)
-				return; // Do not draw for input authority, no point
+        // PRIVATE METHODS
 
-            Debug.Log("Step 4");
-            if (Runner.IsForward == false)
-				return;
+        // Vẽ vị trí AUTHORITATIVE tại tick T — dùng cho cả host lẫn client,
+        // luôn nhất quán vì lấy từ buffer lịch sử của HitboxManager, không phải Transform.
+        private void DrawAuthoritativeHitbox()
+        {
+            if (_drawHitbox == false || _hitbox == null) return;
+            if (HasInputAuthority == true && HasStateAuthority == false) return;
+            if (Runner.IsForward == false) return;
 
-            Debug.Log("Step 5");
             int tick = Runner.Tick;
+            if (tick % _hitboxDrawIntervalTicks != 0) return;
 
-			if (Object.HasStateAuthority == false)
-			{
-				float interpAlpha = Runner.GetRemoteAlpha();
-				int   fromTick    = Runner.GetRemoteTickPrevious();
-				int   toTick      = Runner.GetRemoteTick();
+            float duration = _hitboxDrawIntervalTicks * Runner.DeltaTime;
 
-				if (_subtickAccuracy == true)
-				{
-                    Debug.Log("Step 6.1");
-                    tick = Mathf.RoundToInt(Mathf.Lerp(fromTick, toTick, interpAlpha));
-				}
-				else
-				{
-                    Debug.Log("Step 6.2");
-                    tick = interpAlpha < 0.5f ? fromTick : toTick;
-				}
-			}
+            Runner.LagCompensation.PositionRotation(_hitbox, tick, out Vector3 dataPos, out Quaternion dataRot);
+            GameDraw.WireBox(dataPos + dataRot * _hitbox.Offset, dataRot, _hitbox.BoxExtents * 2f, _stateAuthorityColor, duration);
+            //GameDraw.WireBox(_hitbox.Position, _hitbox.transform.rotation, _hitbox.BoxExtents * 2f, _stateAuthorityColor, duration);
 
-			if (tick % _hitboxDrawIntervalTicks == 0)
-			{
-				Debug.Log("Step 7");
-				float duration = _hitboxDrawIntervalTicks * Runner.DeltaTime;
-				GameDraw.WireBox(_hitbox.Position, _hitbox.transform.rotation, _hitbox.BoxExtents * 2f, GetColor(), duration);
-			}
-		}
+            // Đăng ký tick này để Render() vẽ visual khớp đúng tick, không tự tính riêng
+            _pendingTick = tick;
+            Debug.Log($"Authoritative - Tick[{tick}]: {dataPos + dataRot * _hitbox.Offset} - {dataRot}");
 
-		private Color GetColor()
-		{
-			if (Object.IsProxy == true)
-				return _proxyColor;
+        }
 
-			return Object.HasStateAuthority == true ? _stateAuthorityColor : _inputAuthorityColor;
-		}
-	}
+        // Vẽ vị trí VISUAL — chỉ vẽ khi Render() đã "bắt kịp" đúng cái tick
+        // mà DrawAuthoritativeHitbox vừa vẽ, đảm bảo 2 box cùng 1 con số tick.
+        private void DrawVisualHitbox()
+        {
+            if (_drawHitbox == false || _hitbox == null) return;
+            if (HasInputAuthority == true && HasStateAuthority == false) return;
+            if (_pendingTick < 0) return;
+
+            // Tick hiện tại phía render: state authority dùng Runner.Tick (không có khái niệm remote),
+            // proxy dùng Runner.GetRemoteTick() (tick xa nhất đã nhận được từ server).
+            int renderTick = Object.HasStateAuthority ? Runner.Tick : Runner.GetRemoteTick();
+
+            if (renderTick != _pendingTick) return;
+            if (renderTick == _lastVisualDrawnTick) return; // tránh vẽ lặp nhiều lần cùng 1 tick
+
+            _lastVisualDrawnTick = renderTick;
+
+            float duration = _hitboxDrawIntervalTicks * Runner.DeltaTime;
+            GameDraw.WireBox(_hitbox.Position, _hitbox.transform.rotation, _hitbox.BoxExtents * 2f, _proxyColor, duration);
+            Debug.Log($"Visual - Tick[{renderTick}]: {_hitbox.Position} - {_hitbox.transform.rotation}");
+        }
+
+        private Color GetColor()
+        {
+            if (Object.IsProxy == true)
+                return _proxyColor;
+
+            return Object.HasStateAuthority == true ? _stateAuthorityColor : _inputAuthorityColor;
+        }
+    }
 }

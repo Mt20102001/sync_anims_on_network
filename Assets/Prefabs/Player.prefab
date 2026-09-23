@@ -1,5 +1,57 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4224911856840716097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8474132145630481791}
+  - component: {fileID: 6135584888538234288}
+  m_Layer: 0
+  m_Name: Hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8474132145630481791
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4224911856840716097}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2814111231966479816}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6135584888538234288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4224911856840716097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 1
+  SphereRadius: 0
+  CapsuleRadius: 0
+  BoxExtents: {x: 0.1, y: 0.1, z: 0.1}
+  CapsuleExtents: 0
+  Offset: {x: 0, y: 1.65, z: 0}
+  Root: {fileID: 6247963742643433065}
+  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &7341727946761446050
 GameObject:
   m_ObjectHideFlags: 0
@@ -13,6 +65,7 @@ GameObject:
   - component: {fileID: 1055895431183416072}
   - component: {fileID: 523896731344623919}
   - component: {fileID: 1529046902607016356}
+  - component: {fileID: 6247963742643433065}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -34,6 +87,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4625483023634208101}
+  - {fileID: 8474132145630481791}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2317175212992788694
@@ -90,14 +144,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 373896707
   SendPriority: 1
-  EnableInterpolation: 1
+  EnableInterpolation: 0
   Flags: 262402
-  NestedObjects:
-  - {fileID: 6083249939641973089}
+  NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2317175212992788694}
   - {fileID: 523896731344623919}
   - {fileID: 1529046902607016356}
+  - {fileID: 6247963742643433065}
+  - {fileID: 3161441218643445232}
+  - {fileID: 5273406630060519938}
+  - {fileID: 3181265260893776454}
+  - {fileID: 8980586646668318773}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &523896731344623919
 MonoBehaviour:
@@ -136,6 +194,27 @@ MonoBehaviour:
   _MoveDir: {x: 0, y: 0, z: 0}
   _Jumping: 0
   _OnGround: 0
+  netTransform: {fileID: 2317175212992788694}
+--- !u!114 &6247963742643433065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7341727946761446050}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.HitboxRoot
+  Config: 3
+  BroadRadius: 1.3656892
+  Offset: {x: 0, y: 0, z: 0}
+  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  Hitboxes:
+  - {fileID: 6135584888538234288}
+  - {fileID: 1371224626390497054}
+  - {fileID: 162880922935043814}
 --- !u!1001 &5168933015034557070
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -218,10 +297,10 @@ PrefabInstance:
       addedObject: {fileID: 5273406630060519938}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2f14f289db335184bbce57713da6a5e9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6083249939641973089}
+      addedObject: {fileID: 3181265260893776454}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2f14f289db335184bbce57713da6a5e9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3181265260893776454}
+      addedObject: {fileID: 8980586646668318773}
     - targetCorrespondingSourceObject: {fileID: 9047374273090761668, guid: 2f14f289db335184bbce57713da6a5e9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1371224626390497054}
@@ -252,7 +331,7 @@ MonoBehaviour:
   BoxExtents: {x: 0.05, y: 0.18, z: 0.05}
   CapsuleExtents: 0
   Offset: {x: 0, y: -0.21, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 6247963742643433065}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &4194267181484687690 stripped
 GameObject:
@@ -277,7 +356,7 @@ MonoBehaviour:
   BoxExtents: {x: 0.05, y: 0.18, z: 0.05}
   CapsuleExtents: 0
   Offset: {x: 0, y: 0.21, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 6247963742643433065}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!4 &4625483023634208101 stripped
 Transform:
@@ -354,33 +433,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Animations.HitboxDraw
   _drawHitbox: 1
   _hitbox: {fileID: 1371224626390497054}
-  _hitboxDrawIntervalTicks: 25
-  _subtickAccuracy: 1
+  _hitboxDrawIntervalTicks: 15
   _inputAuthorityColor: {r: 1, g: 1, b: 1, a: 1}
   _proxyColor: {r: 0, g: 0.5686275, b: 1, a: 1}
   _stateAuthorityColor: {r: 0.14901961, g: 1, b: 0, a: 1}
---- !u!114 &6083249939641973089
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5438893562850791391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3110453363
-  SendPriority: 1
-  EnableInterpolation: 1
-  Flags: 262146
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 3161441218643445232}
-  - {fileID: 5273406630060519938}
-  - {fileID: 3181265260893776454}
-  ForceRemoteRenderTimeframe: 0
 --- !u!114 &3181265260893776454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -395,8 +451,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Animations.HitboxDraw
   _drawHitbox: 1
   _hitbox: {fileID: 162880922935043814}
-  _hitboxDrawIntervalTicks: 25
-  _subtickAccuracy: 1
+  _hitboxDrawIntervalTicks: 15
+  _inputAuthorityColor: {r: 1, g: 1, b: 1, a: 1}
+  _proxyColor: {r: 0, g: 0.5686275, b: 1, a: 1}
+  _stateAuthorityColor: {r: 0.14901961, g: 1, b: 0, a: 1}
+--- !u!114 &8980586646668318773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5438893562850791391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 976095b66679fa142bebe2f9be2f9600, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Animations.HitboxDraw
+  _drawHitbox: 1
+  _hitbox: {fileID: 6135584888538234288}
+  _hitboxDrawIntervalTicks: 15
   _inputAuthorityColor: {r: 1, g: 1, b: 1, a: 1}
   _proxyColor: {r: 0, g: 0.5686275, b: 1, a: 1}
   _stateAuthorityColor: {r: 0.14901961, g: 1, b: 0, a: 1}

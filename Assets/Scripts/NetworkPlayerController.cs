@@ -26,6 +26,8 @@ public class NetworkPlayerController : NetworkBehaviour
     [Networked] public bool Jumping { get; private set; }
     [Networked] public bool OnGround { get; private set; }
 
+    [SerializeField] private NetworkTransform netTransform;
+
 
     public override void Spawned()
     {
@@ -40,6 +42,7 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (!GetInput<NCharInput>(out var input))
             return;
+
 
         OnGround = Physics.Raycast(transform.position, Vector3.down, rayLength, layerMask);
 
@@ -77,8 +80,8 @@ public class NetworkPlayerController : NetworkBehaviour
         Vector3 movement = MoveDir * moveSpeed;
         movement.y = Velocity.y;
 
-
-        this.transform.position += movement * Runner.DeltaTime;
+        netTransform.Teleport(this.transform.position + movement * Runner.DeltaTime);
+        //this.transform.position += movement * Runner.DeltaTime;
         if (MoveDir.sqrMagnitude > 0.01f)
             this.transform.forward = MoveDir;
 
